@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append('D:\LLMOps')
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from custom_logging import logger

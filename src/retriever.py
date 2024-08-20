@@ -5,16 +5,21 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from custom_logging import logger
 from custom_exception import CustomException
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Qdrant
+from qdrant_client import QdrantClient
+from utils import format_docs
+from langchain_core.runnables import RunnablePassthrough
+from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
 
-def retrieve_answer_from_docs(question: str, retriever):
+def retrieve_answer_from_docs(question: str):
     """
     Retrieve the answer to a question from the documents.
 
     Args:
         question (str): The question to answer.
-        retriever: The retriever instance to search for answers.
 
     Returns:
         str: The generated answer.
@@ -48,13 +53,20 @@ def retrieve_answer_from_docs(question: str, retriever):
                 {question}""",
             input_variables=["context", "question"]
         )
+        embeddings_model = OpenAIEmbeddings(model='text-embedding-3-small', openai_api_key=os.getenv('OPENAI_API_KEY'))
+        qdrant_client = QdrantClient(url=os.getenv('QDRANT_URL'), api_key=os.getenv('QDRANT_API_KEY'))
 
-        llm = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0, openai_api_key=openai_api_key)
+        qdrant = Qdrant(client=qdrant_client, collection_name="llm-app",
+                        embeddings=embeddings_model)
+        retriever = qdrant.as_retriever(search_kwargs={"k": 20})
+        llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0, openai_api_key=openai_api_key)
+
 
         rag_chain = (
-            {"context": retriever, "question": question}
+            {"context":  retriever| format_docs, "question": RunnablePassthrough()}
             | prompt
             | llm
+            | StrOutputParser()
         )
 
         answer = rag_chain.invoke(question)
