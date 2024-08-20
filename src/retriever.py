@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append("D:/LLMOps")
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
@@ -8,9 +9,13 @@ from custom_exception import CustomException
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Qdrant
 from qdrant_client import QdrantClient
-from utils import format_docs
+from src.utils import format_docs
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.output_parsers import StrOutputParser
+from langchain_groq import ChatGroq
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+
+
 
 load_dotenv()
 
@@ -54,14 +59,23 @@ def retrieve_answer_from_docs(question: str):
             input_variables=["context", "question"]
         )
         embeddings_model = OpenAIEmbeddings(model='text-embedding-3-small', openai_api_key=os.getenv('OPENAI_API_KEY'))
+
+        # model_name = "BAAI/bge-small-en"
+        # model_kwargs = {"device": "cpu"}
+        # encode_kwargs = {"normalize_embeddings": True}
+        # embeddings_model = HuggingFaceBgeEmbeddings(
+        #         model_name=model_name, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs
+        #         )
+
         qdrant_client = QdrantClient(url=os.getenv('QDRANT_URL'), api_key=os.getenv('QDRANT_API_KEY'))
 
         qdrant = Qdrant(client=qdrant_client, collection_name="llm-app",
                         embeddings=embeddings_model)
         retriever = qdrant.as_retriever(search_kwargs={"k": 20})
         llm = ChatOpenAI(model_name="gpt-4o-mini", temperature=0, openai_api_key=openai_api_key)
-
-
+        
+        # llm = ChatGroq(model="mixtral-8x7b-32768",api_key=os.getenv('GROQ_API_KEY'))
+                        
         rag_chain = (
             {"context":  retriever| format_docs, "question": RunnablePassthrough()}
             | prompt

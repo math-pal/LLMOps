@@ -1,6 +1,8 @@
+import sys
+sys.path.append("D:/LLMOps")
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from main import retrieve_answer_from_docs
+from src.main import retriever
 
 app = FastAPI()
 
@@ -16,7 +18,7 @@ async def ask_question(query: QueryRequest):
         raise HTTPException(status_code=400, detail="Question cannot be empty")
     
     # Call the main logic
-    answer = retrieve_answer_from_docs(query.question)
+    answer = retriever(query.question)
     
     return {"question": query.question, "answer": answer}
 
