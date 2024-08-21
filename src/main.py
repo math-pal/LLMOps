@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("D:/LLMOps")
+sys.path.append("E:\Training\Atomcamp\DS6_Bootcamp\Sessions\Guiede_Projects\LLMOps")
 from src.preprocess import load_documents, split_documents
 from src.index import store_documents_to_qdrant
 from langchain_openai import OpenAIEmbeddings

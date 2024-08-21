@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("D:/LLMOps")
+sys.path.append("E:\Training\Atomcamp\DS6_Bootcamp\Sessions\Guiede_Projects\LLMOps")
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain.prompts import PromptTemplate
